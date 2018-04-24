@@ -32,36 +32,32 @@ namespace Console
         [Range(1.0f, 30.0f)]
         public float ScrollSpeed = 5.0f;
 
-        private static ConsoleData s_ConsoleData = new ConsoleData();
+        private static ConsoleData s_ConsoleData;
+        private static Console s_Console;
 
         private bool bVisible = false;
         private int history = -1;
 
         void OnEnable()
         {
+            if(s_ConsoleData == null)
+            {
+                s_ConsoleData = new ConsoleData();
+                s_ConsoleData.AutoRegisterConsoleCommands();
+            }
             s_ConsoleData.OnLogUpdated = UpdateLog;
+            s_Console = this;
 
             Application.logMessageReceived += HandleUnityLog;
 
-            // Use reflection to add automatically console commands
-            var autoCommandTypes = new List<Type>();
+             Log("Console initialized successfully");
+        }
 
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                foreach (Type type in assembly.GetTypes())
-                {
-                    if (type.GetInterfaces().Contains(typeof(IConsoleCommand)) && type.GetCustomAttributes(typeof(AutoRegisterConsoleCommandAttribute), true).Length > 0)
-                    {
-                        autoCommandTypes.Add(type);
-                    }
-                }
-            }
-            foreach(var type in autoCommandTypes)
-            {
-                AddCommand(Activator.CreateInstance(type) as IConsoleCommand);
-            }
-            
-            Log("Console initialized successfully");
+        void OnDisable()
+        {
+            s_ConsoleData.OnLogUpdated = null;
+            s_Console = null;
+            Application.logMessageReceived -= HandleUnityLog;
         }
 
         public void UpdateAutoPanel()
@@ -101,16 +97,6 @@ namespace Console
                 }
                 AutoPanelText.text = sb.ToString();
             }
-
-        }
-
-        void OnDisable()
-        {
-            Application.logMessageReceived -= HandleUnityLog;
-        }
-
-        private void Start()
-        {
 
         }
 
@@ -161,9 +147,34 @@ namespace Console
             }
         }
 
-        void ToggleVisibility()
+        public static void SetVisible(bool visible)
         {
-            bVisible = !bVisible;
+            s_Console.SetVisibility(visible);
+        }
+
+        public static void CaptureScreenshot(string filename, int size)
+        {
+            s_Console.StartCoroutine(s_Console.Screenshot(filename, size));
+        }
+
+        public IEnumerator Screenshot(string filename, int size)
+        {
+            Console.SetVisible(false);
+            yield return new WaitForEndOfFrame();
+            ScreenCapture.CaptureScreenshot(filename, 1);
+            Console.SetVisible(true);
+        }
+        
+        public void ToggleVisibility()
+        {
+            SetVisibility(!bVisible);
+        }
+
+        public void SetVisibility(bool visible)
+        {
+            if (bVisible == visible)
+                return;
+            bVisible = visible;
             Canvas.gameObject.SetActive(bVisible);
             if (bVisible)
             {
@@ -172,7 +183,6 @@ namespace Console
                 InputField.ActivateInputField();
                 UpdateLog();
             }
- 
         }
 
         public void ValidateCommand()
@@ -338,6 +348,28 @@ namespace Console
                 commands = new Dictionary<string, IConsoleCommand>();
                 aliases = new Dictionary<string,string>();
                 commandHistory = new List<string>();
+            }
+
+            public void AutoRegisterConsoleCommands()
+            {
+                // Use reflection to add automatically console commands
+                var autoCommandTypes = new List<Type>();
+
+                foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    foreach (Type type in assembly.GetTypes())
+                    {
+                        if (type.GetInterfaces().Contains(typeof(IConsoleCommand)) && type.GetCustomAttributes(typeof(AutoRegisterConsoleCommandAttribute), true).Length > 0)
+                        {
+                            autoCommandTypes.Add(type);
+                        }
+                    }
+                }
+                foreach (var type in autoCommandTypes)
+                {
+                    AddCommand(Activator.CreateInstance(type) as IConsoleCommand);
+                }
+
             }
         }
 

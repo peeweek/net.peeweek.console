@@ -21,8 +21,9 @@ namespace Console
             string datetime = string.Format("{0}{1}{2}-{3}{4}{5}",now.Year, now.Month, now.Day, now.Hour,now.Minute,now.Second);
             string filename = string.Format("Unity-{0}-{1}-{2}.png", Application.productName, SceneManager.GetActiveScene().name, datetime);
             Console.Log(GetName(), string.Format("Taking Screenshot at {0}x resolution : {1}",size, filename));
-            ScreenCapture.CaptureScreenshot(filename,1);
+            Console.CaptureScreenshot(filename, size);
         }
+
 
         public string GetHelp()
         {
