@@ -4,12 +4,16 @@ A console for use in Unity Projects. The goal is to keep it as simple as possibl
 
 Oh, and the console catches unity Logs.
 
+## Install
+
+Either Clone the repository and reference the package.json in the Package Manager UI, or add directly this line to the `Packages/manifest.json` under `dependencies` : 
+
+`"net.peeweek.console": "https://github.com/peeweek/net.peeweek.console.git",`
+
 ## Usage
 
-* Drop the Console/Console.prefab into your scene
+* ~~Drop the Console/Console.prefab into your scene~~
 * Voilà! You can access the console by pressing F12 at runtime
-
-*(you may need to disable the EventSystem child object if you already have one in your scene)*
 
 ### Navigation (Defaults)
 
