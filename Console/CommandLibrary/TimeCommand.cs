@@ -13,7 +13,7 @@ namespace Console
 
             if(count == 0)
             {
-                Console.Log(GetHelp());
+                Console.Log(help);
             }
             else
             {
@@ -21,26 +21,26 @@ namespace Console
                 {
                     case "delta":
                         if (count == 1)
-                            Console.Log(GetName(), "Curent DeltaTime: " + Time.deltaTime);
+                            Console.Log(name, "Curent DeltaTime: " + Time.deltaTime);
                         break;
                     case "total":
                         if (count == 1)
-                            Console.Log(GetName(), "Curent TotalTime: " + Time.deltaTime);
+                            Console.Log(name, "Curent TotalTime: " + Time.deltaTime);
                         break;
                     case "scale":
                         if (count == 1)
-                            Console.Log(GetName(), "Curent Time Scale: " + Time.timeScale);
+                            Console.Log(name, "Curent Time Scale: " + Time.timeScale);
                         if (count == 2)
                         {
                             double scale;
                             if (double.TryParse(args[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out scale))
                             {
                                 Time.timeScale = (float)scale;
-                                Console.Log(GetName(), "Set Time Scale to : " + scale);
+                                Console.Log(name, "Set Time Scale to : " + scale);
                             }
                             else
                             {
-                                Console.Log(GetName(), "Could not set timeScale to " + args[1]);
+                                Console.Log(name, "Could not set timeScale to " + args[1]);
                             }
                         }
                         break;
@@ -48,24 +48,25 @@ namespace Console
                         if (count >= 1)
                         {
                             Time.timeScale = 0;
-                            Console.Log(GetName(), "Paused the Game");
+                            Console.Log(name, "Paused the Game");
                         }
                         break;
                     case "unpause":
                         if (count >= 1)
                         {
                             Time.timeScale = 1;
-                            Console.Log(GetName(), "Un-paused the Game");
+                            Console.Log(name, "Un-paused the Game");
                         }
                         break;
                 }
             }
-
         }
 
-        public string GetHelp()
-        {
-            return @"Command : Time <property> [value]
+        public string name => "time";
+
+        public string summary => "Sets or gets values for global time";
+
+        public string help =>  @"Command : Time <property> [value]
 sets or gets values for global time.
 read properties:
 * delta : frame current time
@@ -75,24 +76,16 @@ write properties:
 * scale : set Current Time Scale
 * pause : pauses the game
 * unpause : unpause the game and set Timescale to 1x";
-        }
 
-        public string GetName()
+        public IEnumerable<Console.Alias> aliases
         {
-            return "time";
-        }
-
-        public IEnumerable<Console.Alias> GetAliases()
-        {
-            yield return Console.Alias.Get("pause", "time pause");
-            yield return Console.Alias.Get("unpause", "time unpause");
-            yield return Console.Alias.Get("scale", "time scale");
-        }
-
-        public string GetSummary()
-        {
-            return "Sets or gets values for global time";
-        }
+            get 
+            {
+                yield return Console.Alias.Get("pause", "time pause");
+                yield return Console.Alias.Get("unpause", "time unpause");
+                yield return Console.Alias.Get("scale", "time scale");
+            }
+        }    
     }
 }
 

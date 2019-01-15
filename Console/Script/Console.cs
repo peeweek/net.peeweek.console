@@ -74,7 +74,7 @@ namespace Console
                 StringBuilder sb = new StringBuilder();
                 sb.AppendFormat("<color=lime><b>Alias</b></color> <color=orange>{0}</color> => <color=yellow>{1}</color>:\n", words[0], s_ConsoleData.aliases[words[0].ToUpper()]);
                 var command = s_ConsoleData.commands[s_ConsoleData.aliases[words[0].ToUpper()].Split(' ').FirstOrDefault().ToUpper()];
-                sb.Append(command.GetHelp());
+                sb.Append(command.help);
 
                 AutoPanelText.text = sb.ToString();
             }
@@ -82,7 +82,7 @@ namespace Console
             {
                 StringBuilder sb = new StringBuilder();
                 var command = s_ConsoleData.commands[words[0].ToUpper()];
-                sb.Append(command.GetHelp());
+                sb.Append(command.help);
                 AutoPanelText.text = sb.ToString();
             }
             else
@@ -91,7 +91,7 @@ namespace Console
                 foreach (var word in s_ConsoleData.aliases.Keys.Concat(s_ConsoleData.commands.Keys).Where(o => o.Contains(words[0].ToUpper())).ToArray())
                 {
                     bool isAlias = s_ConsoleData.aliases.ContainsKey(word);
-                    string append = isAlias ? string.Format("(alias for '<color=yellow>{0}</color>')",s_ConsoleData.aliases[word.ToUpper()]) : s_ConsoleData.commands[word].GetSummary();
+                    string append = isAlias ? string.Format("(alias for '<color=yellow>{0}</color>')",s_ConsoleData.aliases[word.ToUpper()]) : s_ConsoleData.commands[word].summary;
 
                     sb.AppendFormat("<color={0}>", isAlias ? "orange" : "yellow");
                     sb.Append(word.ToLower());
@@ -182,6 +182,7 @@ namespace Console
             Canvas.gameObject.SetActive(bVisible);
             if (bVisible)
             {
+                InputField.text = "";
                 InputField.Select();
                 InputField.MoveTextStart(false);
                 InputField.ActivateInputField();
@@ -330,17 +331,17 @@ namespace Console
         public static void AddCommand(IConsoleCommand command)
         {
             // Add Command
-            s_ConsoleData.commands.Add(command.GetName().ToUpper(), command);
+            s_ConsoleData.commands.Add(command.name.ToUpper(), command);
 
             // Add Aliases
-            var aliases = command.GetAliases();
+            var aliases = command.aliases;
             if(aliases != null)
                 foreach (var alias in aliases)
                 {
                     if (!alias.AliasString.Contains(" "))
                         s_ConsoleData.aliases.Add(alias.AliasString.ToUpper(), alias.Command);
                     else
-                        Debug.LogError(string.Format("Cannot add alias for command {0} : alias '{1}' contains spaces", command.GetName(), alias.AliasString));
+                        Debug.LogError(string.Format("Cannot add alias for command {0} : alias '{1}' contains spaces", command.name, alias.AliasString));
                 }
 
         }
@@ -403,51 +404,39 @@ namespace Console
                 if (args.Length > 0)
                 {
                     var commands = Console.listAllCommands();
-                    var command = commands.FirstOrDefault<IConsoleCommand>((o) => o.GetName() == args[0]);
+                    var command = commands.FirstOrDefault<IConsoleCommand>((o) => o.name == args[0]);
                     if (command != null)
                     {
-                        Console.Log(GetName(), "Help for command : " + command.GetName());
-                        Console.Log("Summary : " + command.GetSummary());
-                        string[] helpText = command.GetHelp().Replace("\r", "").Split('\n');
+                        Console.Log(name, "Help for command : " + command.name);
+                        Console.Log("Summary : " + command.summary);
+                        string[] helpText = command.help.Replace("\r", "").Split('\n');
                         foreach (var line in helpText)
                         {
                             Console.Log("    " + line);
                         }
                     }
                     else
-                        Console.Log(GetName(), "Could not find help for command " + args[0]);
+                        Console.Log(name, "Could not find help for command " + args[0]);
                 }
                 else
                 {
-                    Console.Log(GetName(), "Available Commands:");
+                    Console.Log(name, "Available Commands:");
                     foreach (var command in Console.listAllCommands())
                     {
-                        Console.Log(command.GetName() + " : " + command.GetSummary());
+                        Console.Log(command.name + " : " + command.summary);
                     }
                 }
             }
+            
+            public string name => "help";
+            
+            public string summary =>"Gets a summary of all commands or shows help for a specific command.";
 
-            public IEnumerable<Alias> GetAliases()
-            {
-                return null;
-            }
-
-            public string GetHelp()
-            {
-                return @"Usage: <color=yellow>HELP</color> <i>command</i>
+            public string help => @"Usage: <color=yellow>HELP</color> <i>command</i>
 Shows help for specific command or list any available command.
 Additional arguments are ignored";
-            }
-
-            public string GetName()
-            {
-                return "help";
-            }
-
-            public string GetSummary()
-            {
-                return "Gets a summary of all commands or shows help for a specific command.";
-            }
+            
+            public IEnumerable<Alias> aliases => null;
         }
     }
 
@@ -459,35 +448,31 @@ Additional arguments are ignored";
             Console.Clear();
         }
 
-        public IEnumerable<Console.Alias> GetAliases()
+        public string name => "clear";
+
+        public string summary => "Clears the console output";
+
+        public string help => @"<color=yellow>Clear</color>
+                Usage: clear";
+
+        public IEnumerable<Console.Alias> aliases
         {
-            yield return Console.Alias.Get("cls", "clear");
+            get 
+            {
+                yield return Console.Alias.Get("cls", "clear");
+            }
         }
 
-        public string GetHelp()
-        {
-            return @"<color=yellow>Clear</color>" +
-                "Usage: clear";
-        }
-
-        public string GetName()
-        {
-            return "clear";
-        }
-
-        public string GetSummary()
-        {
-            return "Clears the console output";
-        }
     }
 
     public interface IConsoleCommand
     {
-        string GetName();
         void Execute(string[] args);
-        string GetSummary();
-        string GetHelp();
-        IEnumerable<Console.Alias> GetAliases();
+
+        string name { get; }
+        string summary { get; }
+        string help { get; }
+        IEnumerable<Console.Alias> aliases { get; }
     }
 
     public class AutoRegisterConsoleCommandAttribute : System.Attribute { }

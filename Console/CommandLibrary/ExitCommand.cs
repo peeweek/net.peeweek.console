@@ -20,25 +20,18 @@ namespace Console
                 
         }
 
-        public string GetHelp()
-        {
-            return @"usage: exit 
-" + GetSummary();
-        }
+        public string name => "exit";
 
-        public string GetName()
-        {
-            return "exit";
-        }
+        public string summary =>"Exits the game";
 
-        public IEnumerable<Console.Alias> GetAliases()
+        public string help => "usage: exit " + summary;
+        
+        public IEnumerable<Console.Alias> aliases
         {
-            yield return Console.Alias.Get("quit", "exit");
-        }
-
-        public string GetSummary()
-        {
-            return "Exits the game";
+            get 
+            {
+                yield return Console.Alias.Get("quit", "exit");
+            }
         }
     }
 

@@ -10,7 +10,7 @@ namespace Console
         public void Execute(string[] args)
         {
             if (args.Length == 0)
-                Console.Log(GetHelp());
+                Console.Log(help);
             else
             {
                 switch(args[0].ToLower())
@@ -19,7 +19,7 @@ namespace Console
                         Resolution r = Screen.currentResolution;
                         if (args.Length == 1)
                         {
-                            Console.Log(GetName(), string.Format("Current resolution is {0}x{1} at {2}Hz", Screen.width, Screen.height, r.refreshRate));
+                            Console.Log(name, string.Format("Current resolution is {0}x{1} at {2}Hz", Screen.width, Screen.height, r.refreshRate));
                         }
                         else if(args.Length == 3)
                         {
@@ -30,7 +30,7 @@ namespace Console
                                 r.width = width;
                                 r.height = height;
                                 Screen.SetResolution(r.width,r.height,Screen.fullScreen, r.refreshRate);
-                                Console.Log(GetName(), string.Format("Setting resolution to {0}x{1} at {2}Hz", r.width, r.height, r.refreshRate));
+                                Console.Log(name, string.Format("Setting resolution to {0}x{1} at {2}Hz", r.width, r.height, r.refreshRate));
                             }
                         }
                         else if(args.Length == 4)
@@ -44,7 +44,7 @@ namespace Console
                                 r.height = height;
                                 r.refreshRate = rate;
                                 Screen.SetResolution(r.width, r.height, Screen.fullScreen, r.refreshRate);
-                                Console.Log(GetName(), string.Format("Setting resolution to {0}x{1} at {2}Hz", r.width, r.height, r.refreshRate));
+                                Console.Log(name, string.Format("Setting resolution to {0}x{1} at {2}Hz", r.width, r.height, r.refreshRate));
                             }
                         }
                         break;
@@ -59,21 +59,23 @@ namespace Console
                             if (bool.TryParse(args[1], out fullscreen))
                             {
                                 Screen.fullScreen = fullscreen;
-                                Console.Log(GetName(), "Setting screen to " + (fullscreen ? "fullscreen" : "windowed"));
+                                Console.Log(name, "Setting screen to " + (fullscreen ? "fullscreen" : "windowed"));
                             }
                         }
 
                         break;
                     default:
-                        Console.Log(GetName(), "Unknown Command : " + args[0], LogType.Error);
+                        Console.Log(name, "Unknown Command : " + args[0], LogType.Error);
                         break;
                 }
             }
         }
 
-        public string GetHelp()
-        {
-            return @"usage: screen <i>command</i> [params]
+        public string name => "screen";
+
+        public string summary => "Sets or gets various informations regarding screen";
+
+        public string help => @"usage: screen <i>command</i> [params]
 read values
 * resolution
 * fullscreen
@@ -81,23 +83,15 @@ store values
 * resolution <i>width</i> <i>height</i> [refreshrate]
 * fullscreen [true/false]
 ";
+
+        public IEnumerable<Console.Alias> aliases
+        {
+            get {
+                yield return Console.Alias.Get("resolution", "screen resolution");
+                yield return Console.Alias.Get("fullscreen", "screen fullscreen");
+            }
         }
 
-        public IEnumerable<Console.Alias> GetAliases()
-        {
-            yield return Console.Alias.Get("resolution", "screen resolution");
-            yield return Console.Alias.Get("fullscreen", "screen fullscreen");
-        }
-
-        public string GetName()
-        {
-            return "screen";
-        }
-
-        public string GetSummary()
-        {
-            return "Sets or gets various informations regarding screen";
-        }
     }
 
 }

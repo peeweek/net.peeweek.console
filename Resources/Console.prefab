@@ -754,7 +754,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 196638f1e21ce0a4c920f0cd072801a9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ToggleKey: 293
+  ToggleKey: 92
   PreviousCommandKey: 273
   NextCommandKey: 274
   ScrollUpKey: 280
