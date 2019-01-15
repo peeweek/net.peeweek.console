@@ -29,14 +29,14 @@ namespace Console
                         break;
                     case "scale":
                         if (count == 1)
-                            Console.Log(GetName(), "Curent TimeScale: " + Time.timeScale);
+                            Console.Log(GetName(), "Curent Time Scale: " + Time.timeScale);
                         if (count == 2)
                         {
                             double scale;
                             if (double.TryParse(args[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out scale))
                             {
                                 Time.timeScale = (float)scale;
-                                Console.Log(GetName(), "Set TimeScale to : " + scale);
+                                Console.Log(GetName(), "Set Time Scale to : " + scale);
                             }
                             else
                             {
@@ -70,9 +70,9 @@ sets or gets values for global time.
 read properties:
 * delta : frame current time
 * total : total elapsed time
-* timescale : current timescale
+* scale : current timescale
 write properties:
-* timescale : set Current Time Scale
+* scale : set Current Time Scale
 * pause : pauses the game
 * unpause : unpause the game and set Timescale to 1x";
         }
@@ -86,7 +86,7 @@ write properties:
         {
             yield return Console.Alias.Get("pause", "time pause");
             yield return Console.Alias.Get("unpause", "time unpause");
-            yield return Console.Alias.Get("timescale", "time timescale");
+            yield return Console.Alias.Get("scale", "time scale");
         }
 
         public string GetSummary()
