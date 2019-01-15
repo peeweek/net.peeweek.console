@@ -11,7 +11,7 @@ namespace Console
 {
     public class Console : MonoBehaviour
     {
-        static readonly int MAX_CHARS = 3192;
+        static readonly int MAX_CHARS = 8192;
 
         [Header("Keys")]
         public KeyCode ToggleKey = KeyCode.F12;
