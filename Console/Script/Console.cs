@@ -11,6 +11,8 @@ namespace Console
 {
     public class Console : MonoBehaviour
     {
+        static readonly int MAX_CHARS = 3192;
+
         [Header("Keys")]
         public KeyCode ToggleKey = KeyCode.F12;
         public KeyCode PreviousCommandKey = KeyCode.UpArrow;
@@ -50,7 +52,9 @@ namespace Console
 
             Application.logMessageReceived += HandleUnityLog;
 
-             Log("Console initialized successfully");
+            Log("Console initialized successfully");
+
+            UpdateLog();
         }
 
         void OnDisable()
@@ -273,10 +277,28 @@ namespace Console
 
             if (LogText != null)
             {
-                LogText.text = s_ConsoleData.lines.Aggregate((a, b) => a + "\n" + b);
+                //string text = s_ConsoleData.lines.Aggregate((a, b) => a + "\n" + b);
+                
+                string text = string.Empty;
+                for(int i = s_ConsoleData.lines.Count-1; i >= 0; i--)
+                {
+                    string line = s_ConsoleData.lines[i];
+                    if(text != string.Empty)
+                        line += "\n"; 
+                    
+                    if(line.Length + text.Length > MAX_CHARS)
+                        break;
+                    else
+                        text = line + text;
+                }
+
+                LogText.text = text; 
+                LogText.GraphicUpdateComplete();
+
                 if (LogContents != null)
                 {
-                    float height = s_ConsoleData.lines.Count * (LogText.fontSize + 2) * LogText.lineSpacing + 8;
+                    int count = LogText.text.Count(o => o == '\n');
+                    float height = Math.Max(count * (LogText.fontSize + 2) * LogText.lineSpacing + 32, 64);
                     LogContents.sizeDelta = new Vector2(LogContents.sizeDelta.x, height);
                 }
 
