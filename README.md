@@ -17,7 +17,7 @@ Either Clone the repository and reference the package.json in the Package Manage
 
 ### Navigation (Defaults)
 
-* F12 to Open/Close console
+* Backslash to Open/Close console
 * Up/Down arrows to access type command history
 * PageUp/PageDown to scroll console log history
 
@@ -55,31 +55,21 @@ namespace Console
     {
         public void Execute(string[] args)
         {
-			//use args array to parse command. args[] do not include the base command so in
+	     //use args array to parse command. args[] do not include the base command so in
              // command 'mycommand foo bar' args[0] is foo and args[1] is bar
         }
 
-        public string GetHelp()
-        {
-            return @"usage: exit"; // the help will be displayed when typing 
-            					 // the command 'help mycommand'
-        }
+        public string name => "mycommand"; 		// the actual command key
+        public string summary => "Does soemthing";	// summary displayed when typing 'help'
+        public string help => "usage: mycommand"; 	// help displayed when typing 'help mycommand'
 
-        public string GetName()
+        public IEnumerable<Console.Alias> aliases
         {
-            return "mycommand"; // the actual command key
-        }
-
-        public IEnumerable<Console.Alias> GetAliases()
-        {
-            yield return Console.Alias.Get("myalias", "mycommand foo bar");
-            // yield return any console alias you need, for ease of use purposes
-        }
-
-        public string GetSummary()
-        {
-            return "Exits the game";
-            // summary will be displayed in the autocomplete pane
+	    get
+	    {
+                yield return Console.Alias.Get("myalias", "mycommand foo bar");
+                // yield return any console alias you need, for ease of use purposes
+	    }
         }
     }
 
