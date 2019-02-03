@@ -265,6 +265,10 @@ namespace Console
         private static void HandleUnityLog(string logString, string stackTrace, LogType type)
         {
             Log("UNITY", string.Format("[{0}] : {1}", type, logString), type);
+            if(type == LogType.Error || type == LogType.Exception)
+            {
+                Log(stackTrace);
+            }
         }
 
         private int GetCapacity()
