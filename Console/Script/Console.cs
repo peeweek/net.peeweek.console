@@ -256,7 +256,7 @@ namespace Console
             string[] lines = Message.Split('\n');
 
             foreach(string line in lines)
-                s_ConsoleData.lines.Add("<color=gray>[" + Time.unscaledTime + "]</color> " + prepend +line);
+                s_ConsoleData.lines.Add("<color=gray>[" + Time.unscaledTime.ToString("F3") + "]</color> " + prepend +line);
 
             if (s_ConsoleData.OnLogUpdated != null)
                 s_ConsoleData.OnLogUpdated.Invoke();
