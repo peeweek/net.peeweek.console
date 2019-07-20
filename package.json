@@ -1,7 +1,10 @@
 {
-    "name": "net.peeweek.console",
-    "displayName": "Console",
-    "version": "1.0.1-preview",
-    "unity": "2018.3",
-    "description": "Console for your games"
+  "name": "net.peeweek.console",
+  "displayName": "Console",
+  "version": "1.0.1-preview",
+  "unity": "2018.3",
+  "description": "Console for your games",
+  "dependencies": {
+    "com.unity.textmeshpro": "2.0.1"
+  }
 }

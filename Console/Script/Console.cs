@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using System;
 using System.Text;
 using System.Reflection;
@@ -11,7 +12,7 @@ namespace Console
 {
     public class Console : MonoBehaviour
     {
-        static readonly int MAX_CHARS = 8192;
+        static readonly int MAX_CHARS = 65535;
 
         [Header("Keys")]
         public KeyCode ToggleKey = KeyCode.F12;
@@ -24,7 +25,7 @@ namespace Console
         [Header("Items")]
         public Canvas Canvas;
         public InputField InputField;
-        public Text LogText;
+        public TMP_Text LogText;
         public RectTransform LogContents;
         public ScrollRect ScrollRect;
         public GameObject AutoPanelRoot;
@@ -33,7 +34,7 @@ namespace Console
         [Header("Settings")]
         [Range(1.0f, 30.0f)]
         public float ScrollSpeed = 5.0f;
-
+        
         private static ConsoleData s_ConsoleData;
         private static Console s_Console;
 
@@ -240,14 +241,14 @@ namespace Console
                     case LogType.Assert:
                     case LogType.Error:
                     case LogType.Exception:
-                        color = "red";
+                        color = "#FF0033";
                         break;
                     case LogType.Warning:
-                        color = "orange";
+                        color = "#FF9933";
                         break;
                     default:
                     case LogType.Log:
-                        color = "lime";
+                        color = "#99FF33";
                         break;
                 }
                 prepend = string.Format("[<color={1}>{0}</color>] ", Command.ToUpper(), color);
@@ -256,7 +257,7 @@ namespace Console
             string[] lines = Message.Split('\n');
 
             foreach(string line in lines)
-                s_ConsoleData.lines.Add("<color=gray>[" + Time.unscaledTime.ToString("F3") + "]</color> " + prepend +line);
+                s_ConsoleData.lines.Add("<color=#999999>[" + Time.unscaledTime.ToString("F3") + "]</color> " + prepend +line);
 
             if (s_ConsoleData.OnLogUpdated != null)
                 s_ConsoleData.OnLogUpdated.Invoke();
@@ -269,11 +270,6 @@ namespace Console
             {
                 Log(stackTrace);
             }
-        }
-
-        private int GetCapacity()
-        {
-            return (int)(LogText.rectTransform.rect.height / (LogText.font.lineHeight + LogText.lineSpacing));
         }
 
         private void UpdateLog()
@@ -303,7 +299,7 @@ namespace Console
                 if (LogContents != null)
                 {
                     int count = LogText.text.Count(o => o == '\n');
-                    float height = Math.Max(count * (LogText.fontSize + 2) * LogText.lineSpacing + 32, 64);
+                    float height = Math.Max(count * (LogText.fontSize + 1.5f) + 30, 64);
                     LogContents.sizeDelta = new Vector2(LogContents.sizeDelta.x, height);
                 }
 
