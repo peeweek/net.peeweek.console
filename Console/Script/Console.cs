@@ -212,7 +212,11 @@ namespace ConsoleUtility
                 Log("Unknown Command: " + words[0]);
                 InputField.text = "";
             }
-            s_ConsoleData.commandHistory.Insert(0, command);
+
+            // Ensure no duplicates in history
+            if(s_ConsoleData.commandHistory.Count == 0 || command != s_ConsoleData.commandHistory[0])
+                s_ConsoleData.commandHistory.Insert(0, command);
+
             InputField.Select();
             InputField.MoveTextStart(false);
             InputField.ActivateInputField();
