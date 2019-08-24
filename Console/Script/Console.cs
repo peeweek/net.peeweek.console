@@ -7,7 +7,7 @@ using System.Text;
 using System.Reflection;
 using System.Linq;
 
-namespace Console
+namespace ConsoleUtility
 {
     public class Console : MonoBehaviour
     {
@@ -349,12 +349,18 @@ namespace Console
         {
             if (s_ConsoleData.lines.Count == 0 || !bVisible) return;
 
+            // Ensure m_Scroll is Consistent when clearing;
+            if (m_Scroll > s_ConsoleData.lines.Count)
+                m_Scroll = -1;
+
+            // Update Log Text
             if (LogText != null)
             {
                 LogText.text = GetScrolledText(); 
                 LogText.GraphicUpdateComplete();
             }
-            
+
+            // Update Scroll Info Text
             if (ScrollInfo != null)
             {
                 int pageSize = GetScrollPageSize();

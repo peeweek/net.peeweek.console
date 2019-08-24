@@ -28,7 +28,7 @@ Either Clone the repository and reference the package.json in the Package Manage
 * `clear` clears the console output.
 
 ### API Summary
-
+* `using ConsoleUtility;`
 * `Console.Log("Module", "Message", LogType.Warning);`for a detailed log and coloration.
 * `Console.Log("Module", "Message");`shortcut with `LogType.Log`.
 * `Console.Log("Message");`Simplest one, without module.
@@ -48,7 +48,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Console
+namespace ConsoleUtility
 {
     [AutoRegisterConsoleCommand]
     public class MyConsoleCommand : IConsoleCommand
