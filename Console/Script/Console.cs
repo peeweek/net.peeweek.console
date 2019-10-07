@@ -8,12 +8,10 @@ using System.Text;
 using System.Reflection;
 using System.Linq;
 
-namespace Console
+namespace ConsoleUtility
 {
     public class Console : MonoBehaviour
     {
-        static readonly int MAX_CHARS = 65535;
-
         [Header("Keys")]
         public KeyCode ToggleKey = KeyCode.F12;
         public KeyCode PreviousCommandKey = KeyCode.UpArrow;
@@ -52,6 +50,8 @@ namespace Console
             s_Console = this;
 
             Application.logMessageReceived += HandleUnityLog;
+
+            LogText.font.RequestCharactersInTexture("qwertyuiopasdfghjklzxcvbnmQWERYTUIOPASDFGHJKLZXCVBNM1234567890~`!@#$%^&*()_+{}[]:;\"'/.,?><");
 
             Log("Console initialized successfully");
 
@@ -142,13 +142,11 @@ namespace Console
             }
             else if (Input.GetKeyDown(ScrollUpKey))
             {
-                if (ScrollRect != null)
-                    ScrollRect.verticalNormalizedPosition += ScrollSpeed / s_ConsoleData.lines.Count;
+                ScrollUp();
             }
             else if (Input.GetKeyDown(ScrollDownKey))
             {
-                if (ScrollRect != null)
-                    ScrollRect.verticalNormalizedPosition -= ScrollSpeed/ s_ConsoleData.lines.Count;
+                ScrollDown();
             }
         }
 
@@ -216,7 +214,11 @@ namespace Console
                 Log("Unknown Command: " + words[0]);
                 InputField.text = "";
             }
-            s_ConsoleData.commandHistory.Insert(0, command);
+
+            // Ensure no duplicates in history
+            if(s_ConsoleData.commandHistory.Count == 0 || command != s_ConsoleData.commandHistory[0])
+                s_ConsoleData.commandHistory.Insert(0, command);
+
             InputField.Select();
             InputField.MoveTextStart(false);
             InputField.ActivateInputField();
@@ -272,39 +274,114 @@ namespace Console
             }
         }
 
+        private int m_Scroll=-1;
+
+        private int GetCapacity()
+        {
+            return (int)(LogText.rectTransform.rect.height / (LogText.font.lineHeight + LogText.lineSpacing));
+        }
+
+        private int GetScrollPageSize()
+        {
+            float lineSize = LogText.lineSpacing + LogText.font.fontSize;
+            int count = Mathf.FloorToInt(LogText.rectTransform.rect.height / lineSize);
+            return count;
+        }
+
+        private void ScrollUp()
+        {
+            int pageSize = GetScrollPageSize();
+
+            if (s_ConsoleData.lines.Count < pageSize)
+                return;
+
+            if(m_Scroll == -1)
+            {
+                m_Scroll = s_ConsoleData.lines.Count - pageSize;
+            }
+            
+            m_Scroll = Math.Max(0, m_Scroll - pageSize);
+            UpdateLog();
+        }
+
+        private void ScrollDown()
+        {
+            int pageSize = GetScrollPageSize();
+
+            if (s_ConsoleData.lines.Count < pageSize)
+                return;
+
+            if (m_Scroll == -1)
+                return;
+
+            m_Scroll += pageSize;
+
+            if (m_Scroll >= (s_ConsoleData.lines.Count - pageSize))
+                m_Scroll = -1; // Snap Again
+
+            UpdateLog();
+        }
+
+        private string GetScrolledText()
+        {
+            int pageSize = GetScrollPageSize();
+            int count = s_ConsoleData.lines.Count;
+
+            CharacterInfo info;
+            LogText.font.GetCharacterInfo('X', out info);
+
+            int maxCharsInLine = Mathf.FloorToInt(LogText.rectTransform.rect.width / info.advance);
+
+            int init = m_Scroll == -1 ? count - pageSize : m_Scroll;
+
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = init; i < (init + pageSize); i++)
+            {
+                if (i < 0)
+                    continue;
+                string line = s_ConsoleData.lines[i];
+
+                if (line.Length > maxCharsInLine)
+                    line = line.Substring(0, maxCharsInLine - 4) + " ...";
+
+                sb.AppendLine(line);
+            }
+
+            return sb.ToString();
+        }
+
         private void UpdateLog()
         {
             if (s_ConsoleData.lines.Count == 0 || !bVisible) return;
 
+            // Ensure m_Scroll is Consistent when clearing;
+            if (m_Scroll > s_ConsoleData.lines.Count)
+                m_Scroll = -1;
+
+            // Update Log Text
             if (LogText != null)
             {
-                //string text = s_ConsoleData.lines.Aggregate((a, b) => a + "\n" + b);
-                
-                string text = string.Empty;
-                for(int i = s_ConsoleData.lines.Count-1; i >= 0; i--)
-                {
-                    string line = s_ConsoleData.lines[i];
-                    if(text != string.Empty)
-                        line += "\n"; 
-                    
-                    if(line.Length + text.Length > MAX_CHARS)
-                        break;
-                    else
-                        text = line + text;
-                }
-
-                LogText.text = text; 
+                LogText.text = GetScrolledText(); 
                 LogText.GraphicUpdateComplete();
+            }
 
-                if (LogContents != null)
+            // Update Scroll Info Text
+            if (ScrollInfo != null)
+            {
+                int pageSize = GetScrollPageSize();
+                int count = s_ConsoleData.lines.Count;
+
+                string text = string.Empty;
+                if (m_Scroll == -1)
                 {
-                    int count = LogText.text.Count(o => o == '\n');
-                    float height = Math.Max(count * (LogText.fontSize + 1.5f) + 30, 64);
-                    LogContents.sizeDelta = new Vector2(LogContents.sizeDelta.x, height);
+                    ScrollInfo.text = $"*[{Mathf.FloorToInt(count / pageSize)}/{Mathf.CeilToInt(count / pageSize)}]";
                 }
-
-                if (ScrollRect != null)
-                    ScrollRect.verticalNormalizedPosition = 0.0f;
+                else
+                {
+                    ScrollInfo.text = $"[{Mathf.FloorToInt(m_Scroll / pageSize)}/{Mathf.CeilToInt(count / pageSize)}]";
+                }
+                ScrollInfo.GraphicUpdateComplete();
             }
         }
         
