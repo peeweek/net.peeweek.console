@@ -24,6 +24,7 @@ namespace ConsoleUtility
         public Canvas Canvas;
         public InputField InputField;
         public TMP_Text LogText;
+        public TMP_Text ScrollInfo;
         public RectTransform LogContents;
         public ScrollRect ScrollRect;
         public GameObject AutoPanelRoot;
@@ -50,8 +51,7 @@ namespace ConsoleUtility
             s_Console = this;
 
             Application.logMessageReceived += HandleUnityLog;
-
-            LogText.font.RequestCharactersInTexture("qwertyuiopasdfghjklzxcvbnmQWERYTUIOPASDFGHJKLZXCVBNM1234567890~`!@#$%^&*()_+{}[]:;\"'/.,?><");
+            //LogText.font.RequestCharactersInTexture("qwertyuiopasdfghjklzxcvbnmQWERYTUIOPASDFGHJKLZXCVBNM1234567890~`!@#$%^&*()_+{}[]:;\"'/.,?><");
 
             Log("Console initialized successfully");
 
@@ -278,12 +278,12 @@ namespace ConsoleUtility
 
         private int GetCapacity()
         {
-            return (int)(LogText.rectTransform.rect.height / (LogText.font.lineHeight + LogText.lineSpacing));
+            return (int)(LogText.rectTransform.rect.height / (LogText.font.faceInfo.lineHeight + LogText.lineSpacing));
         }
 
         private int GetScrollPageSize()
         {
-            float lineSize = LogText.lineSpacing + LogText.font.fontSize;
+            float lineSize = LogText.lineSpacing + LogText.font.faceInfo.pointSize;
             int count = Mathf.FloorToInt(LogText.rectTransform.rect.height / lineSize);
             return count;
         }
@@ -327,10 +327,9 @@ namespace ConsoleUtility
             int pageSize = GetScrollPageSize();
             int count = s_ConsoleData.lines.Count;
 
-            CharacterInfo info;
-            LogText.font.GetCharacterInfo('X', out info);
+            var advance = LogText.textInfo.characterInfo[0].xAdvance;
 
-            int maxCharsInLine = Mathf.FloorToInt(LogText.rectTransform.rect.width / info.advance);
+            int maxCharsInLine = Mathf.FloorToInt(LogText.rectTransform.rect.width / advance);
 
             int init = m_Scroll == -1 ? count - pageSize : m_Scroll;
 
