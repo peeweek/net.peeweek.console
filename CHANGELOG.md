@@ -1,6 +1,10 @@
 # Console Changelog
 
-## [2019-08-XX] - 1.1.0
+## [2020-XX-XX] - 1.2.0
+
+* Added a `Console.ExecuteCommand(string command)` to execute a command from script.
+
+## [2019-08-24] - 1.1.0
 
 * No more preview label for the package
 * Got rid of UGUI ScrollBar, only displays one TextField

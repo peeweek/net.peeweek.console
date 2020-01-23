@@ -187,36 +187,41 @@ namespace ConsoleUtility
             }
         }
 
-        public void ValidateCommand()
+        public static void ExecuteCommand(string command)
         {
-            if (InputField.text == "") return;
-            string command = InputField.text;
             string[] words = command.Split(' ');
 
             if (s_ConsoleData.commands.ContainsKey(words[0].ToUpper()))
             {
                 s_ConsoleData.commands[words[0].ToUpper()].Execute(words.Skip(1).ToArray());
-                InputField.text = "";
             }
-            else if(s_ConsoleData.aliases.ContainsKey(words[0].ToUpper()))
+            else if (s_ConsoleData.aliases.ContainsKey(words[0].ToUpper()))
             {
                 string alias = words[0];
                 string aliascommand = command.Replace(alias, s_ConsoleData.aliases[alias.ToUpper()]);
                 string[] aliaswords = aliascommand.Split(' ');
 
                 s_ConsoleData.commands[aliaswords[0].ToUpper()].Execute(aliaswords.Skip(1).ToArray());
-                InputField.text = "";
             }
             else
             {
                 Log("Unknown Command: " + words[0]);
-                InputField.text = "";
             }
 
             // Ensure no duplicates in history
-            if(s_ConsoleData.commandHistory.Count == 0 || command != s_ConsoleData.commandHistory[0])
+            if (s_ConsoleData.commandHistory.Count == 0 || command != s_ConsoleData.commandHistory[0])
                 s_ConsoleData.commandHistory.Insert(0, command);
 
+        }
+
+        public void ValidateCommand()
+        {
+            if (InputField.text == "") 
+                return;
+
+            string command = InputField.text;
+            ExecuteCommand(command);
+            InputField.text = "";
             InputField.Select();
             InputField.MoveTextStart(false);
             InputField.ActivateInputField();
