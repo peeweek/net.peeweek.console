@@ -3,6 +3,7 @@
 ## [2020-XX-XX] - 1.2.0
 
 * Added a `Console.ExecuteCommand(string command)` to execute a command from script.
+* Fixed namespace in `ConsoleUtility.cs` preventing to Reference `Console.Alias` directly in custom classes.
 
 ## [2019-08-24] - 1.1.0
 
