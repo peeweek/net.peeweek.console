@@ -1,16 +1,28 @@
 # Console
 
+[![openupm](https://img.shields.io/npm/v/net.peeweek.console?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/net.peeweek.console/)
+
 A console for use in Unity Projects. The goal is to keep it as simple as possible. The console can register console commands to extend its possibilities. Console commands are easy to write and implement. There are some examples shipped with the base package.
 
 Oh, and the console catches unity Logs.
 
 ## Install
 
+### Install via OpenUPM
+
+The package is available on the [openupm registry](https://openupm.com). It's recommended to install it via [openupm-cli](https://github.com/openupm/openupm-cli).
+
+```
+openupm add net.peeweek.console
+```
+
+### Install via Git
+
 Either Clone the repository and reference the `package.json` in the Package Manager UI, or add directly this line to the `Packages/manifest.json` under `dependencies` : 
 
 `"net.peeweek.console": "https://github.com/peeweek/net.peeweek.console.git#1.1.0",`
 
-## How to use
+## How to Use
 
 * Press the Backslash `\` key at runtime to toggle the Console (Can be customized if you use the package as local package)
 * Use the input field to input commands and execute button or return key to execute.
@@ -41,7 +53,7 @@ Writing console commands requires writing a Class that implements `IConsoleComma
 * To manually register a console command use `Console.AddCommand(IConsoleCommand command)`
 * To set a console command to register itself automatically use the `    [AutoRegisterConsoleCommand]` class attribute
 
-### Console Command structure
+### Console Command Structure
 
 ```c#
 using System.Collections;
