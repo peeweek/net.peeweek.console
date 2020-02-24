@@ -13,6 +13,7 @@ namespace ConsoleUtility
     {
         [Header("Keys")]
         public KeyCode ToggleKey = KeyCode.F12;
+        public KeyCode CycleViewKey = KeyCode.Tab;
         public KeyCode PreviousCommandKey = KeyCode.UpArrow;
         public KeyCode NextCommandKey = KeyCode.DownArrow;
         public KeyCode ScrollUpKey = KeyCode.PageUp;
@@ -22,6 +23,7 @@ namespace ConsoleUtility
         [Header("Items")]
         public Canvas Canvas;
         public InputField InputField;
+        public Button ExecuteButton;
         public Text LogText;
         public Text ScrollInfo;
         public GameObject AutoPanelRoot;
@@ -103,12 +105,41 @@ namespace ConsoleUtility
 
         }
 
+        int m_CurrentDebugView  = -1;
+
         void Update()
         {
             if (Input.GetKeyDown(ToggleKey))
                 ToggleVisibility();
 
             if (!bVisible) return;
+
+            if (Input.GetKeyDown(CycleViewKey))
+            {
+                m_CurrentDebugView++;
+                if (m_CurrentDebugView >= s_ConsoleData.debugViews.Count)
+                {
+                    m_CurrentDebugView = -1;
+                    UpdateLog();
+                    InputField.interactable = true;
+                    ExecuteButton.interactable = true;
+                }
+                else
+                {
+                    InputField.interactable = false;
+                    ExecuteButton.interactable = false;
+                }
+            }
+
+            if (m_CurrentDebugView != -1)
+            {
+                if (s_ConsoleData.debugViews[m_CurrentDebugView].Update())
+                {
+                    LogText.text = s_ConsoleData.debugViews[m_CurrentDebugView].GetView();
+                    LogText.Rebuild(CanvasUpdate.Layout);
+                }
+                return;
+            } 
 
             if (Input.GetKeyDown(PreviousCommandKey))
             {
@@ -444,6 +475,29 @@ namespace ConsoleUtility
             public Dictionary<string,string> aliases;
             public System.Action OnLogUpdated;
             public List<string> commandHistory;
+
+            List<DebugView> m_DebugViews;
+
+            public void AddDebugView(DebugView view)
+            {
+                if (!HasDebugView(view.GetType()))
+                    m_DebugViews.Add(view);
+            }
+
+            public bool HasDebugView(Type t)
+            {
+                if (m_DebugViews == null)
+                    m_DebugViews = new List<DebugView>();
+
+                foreach (var view in m_DebugViews)
+                {
+                    if (view.GetType() == t)
+                        return true;
+                }
+                return false;
+            }
+
+            public List<DebugView> debugViews { get { return m_DebugViews; } }
 
             public ConsoleData()
             {
