@@ -1,5 +1,7 @@
 # Console
 
+[![openupm](https://img.shields.io/npm/v/net.peeweek.console?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/net.peeweek.console/)
+
 A console for use in Unity Projects. The goal is to keep it as simple as possible. The console can register console commands to extend its possibilities. Console commands are easy to write and implement. There are some examples shipped with the base package.
 
 Oh, and the console catches unity Logs.
