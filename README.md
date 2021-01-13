@@ -14,7 +14,7 @@ Either Clone the repository and reference the `package.json` in the Package Mana
 
 `"net.peeweek.console": "https://github.com/peeweek/net.peeweek.console.git#1.2.0",`
 
-### OpenUPM Scoped Registry (2021.1 and newer)
+### OpenUPM Scoped Registry (2020.1 and newer)
 
 Open Project Preferences and go to Package manager Window.
 
