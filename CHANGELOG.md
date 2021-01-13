@@ -1,6 +1,8 @@
 # Console Changelog
 
-## [2020-XX-XX] - 1.2.0
+## [2021-01-13] - 1.2.0
+
+Minimal version is now 2019.4
 
 * Added a `Console.ExecuteCommand(string command)` to execute a command from script.
 * Fixed namespace in `ConsoleUtility.cs` preventing to Reference `Console.Alias` directly in custom classes.
