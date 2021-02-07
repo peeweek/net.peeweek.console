@@ -11,7 +11,7 @@ namespace ConsoleUtility
 
         string m_Lines;
 
-        public DebugView(float updateRate)
+        public DebugView(float updateRate = 10f)
         {
             m_UpdateRate = updateRate;
             m_TTL = 0;
@@ -20,7 +20,7 @@ namespace ConsoleUtility
 
         public bool Update()
         {
-            if(m_TTL == 0)
+            if(m_TTL < 0)
             {
                 m_TTL = 1.0f / m_UpdateRate;
                 return true;

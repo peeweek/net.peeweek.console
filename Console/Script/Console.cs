@@ -12,7 +12,7 @@ namespace ConsoleUtility
     public class Console : MonoBehaviour
     {
         [Header("Keys")]
-        public KeyCode ToggleKey = KeyCode.F12;
+        public KeyCode ToggleKey = KeyCode.Backslash;
         public KeyCode CycleViewKey = KeyCode.Tab;
         public KeyCode PreviousCommandKey = KeyCode.UpArrow;
         public KeyCode NextCommandKey = KeyCode.DownArrow;
@@ -24,6 +24,7 @@ namespace ConsoleUtility
         public Canvas Canvas;
         public InputField InputField;
         public Button ExecuteButton;
+        public Button ClearButton;
         public Text LogText;
         public Text ScrollInfo;
         public GameObject AutoPanelRoot;
@@ -107,6 +108,32 @@ namespace ConsoleUtility
 
         int m_CurrentDebugView  = -1;
 
+        void SetDebugView(int index)
+        {
+            m_CurrentDebugView = index;
+
+            if (m_CurrentDebugView >= s_ConsoleData.debugViews.Count)
+                m_CurrentDebugView = -1;
+            else if (m_CurrentDebugView == -2)
+                m_CurrentDebugView = s_ConsoleData.debugViews.Count - 1;
+
+            if (m_CurrentDebugView == -1)
+            {
+                InputField?.gameObject.SetActive(true);
+                ExecuteButton?.gameObject.SetActive(true);
+                ClearButton?.gameObject.SetActive(true);
+                UpdateLog();
+                InputField.ActivateInputField();
+            }
+            else
+            {
+                InputField?.gameObject.SetActive(false);
+                ExecuteButton?.gameObject.SetActive(false);
+                ClearButton?.gameObject.SetActive(false);
+            }
+        }
+
+
         void Update()
         {
             if (Input.GetKeyDown(ToggleKey))
@@ -116,19 +143,12 @@ namespace ConsoleUtility
 
             if (Input.GetKeyDown(CycleViewKey))
             {
-                m_CurrentDebugView++;
-                if (m_CurrentDebugView >= s_ConsoleData.debugViews.Count)
-                {
-                    m_CurrentDebugView = -1;
-                    UpdateLog();
-                    InputField.interactable = true;
-                    ExecuteButton.interactable = true;
-                }
+                // If Shift, cycle reverse
+                if(Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                    SetDebugView(m_CurrentDebugView - 1);
                 else
-                {
-                    InputField.interactable = false;
-                    ExecuteButton.interactable = false;
-                }
+                    SetDebugView(m_CurrentDebugView + 1);
+
             }
 
             if (m_CurrentDebugView != -1)
@@ -139,7 +159,7 @@ namespace ConsoleUtility
                     LogText.Rebuild(CanvasUpdate.Layout);
                 }
                 return;
-            } 
+            }
 
             if (Input.GetKeyDown(PreviousCommandKey))
             {
@@ -188,6 +208,21 @@ namespace ConsoleUtility
         {
             s_Console.StartCoroutine(s_Console.Screenshot(filename, size));
         }
+
+        public static void RegisterView<TDebugView>() where TDebugView : DebugView, new()
+        {
+            // If not yet created, create an instance
+            if(!s_ConsoleData.debugViews.Any(o => o.GetType() == typeof(TDebugView)))
+            {
+                s_ConsoleData.debugViews.Add(new TDebugView());
+            }
+
+            // Switch to view
+            int index = s_ConsoleData.debugViews.IndexOf(s_ConsoleData.debugViews.First(o => o.GetType() == typeof(TDebugView)));
+            s_Console.m_CurrentDebugView = index;
+            s_Console.SetDebugView(s_Console.m_CurrentDebugView);
+        }
+
 
         public IEnumerator Screenshot(string filename, int size)
         {
@@ -505,6 +540,7 @@ namespace ConsoleUtility
                 commands = new Dictionary<string, IConsoleCommand>();
                 aliases = new Dictionary<string,string>();
                 commandHistory = new List<string>();
+                m_DebugViews = new List<DebugView>();
             }
 
             public void AutoRegisterConsoleCommands()

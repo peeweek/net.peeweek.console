@@ -2,17 +2,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class StatCommand : MonoBehaviour
+namespace ConsoleUtility
 {
-    // Start is called before the first frame update
-    void Start()
+    [AutoRegisterConsoleCommand]
+    public class StatCommand : IConsoleCommand
     {
-        
-    }
+        public string name => "stat";
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        public string summary => "Display Statistics about current game session";
+
+        public string help => "stat";
+
+        public IEnumerable<Console.Alias> aliases => null;
+
+        public void Execute(string[] args)
+        {
+            Console.RegisterView<StatView>();
+        }
     }
 }
