@@ -1,9 +1,15 @@
 # Console Changelog
 
-## [2020-XX-XX] - 1.2.0
+## [2021-XX-XX] - 1.3.0
+
+* Added API for debug views.
+
+## [2021-01-13] - 1.2.0
+
+Minimal version is now 2019.4
 
 * Added a `Console.ExecuteCommand(string command)` to execute a command from script.
-* Added API for debug views.
+* Fixed namespace in `ConsoleUtility.cs` preventing to Reference `Console.Alias` directly in custom classes.
 
 ## [2019-08-24] - 1.1.0
 

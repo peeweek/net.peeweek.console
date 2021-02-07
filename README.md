@@ -1,14 +1,32 @@
 # Console
 
+[![openupm](https://img.shields.io/npm/v/net.peeweek.console?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/net.peeweek.console/)
+
 A console for use in Unity Projects. The goal is to keep it as simple as possible. The console can register console commands to extend its possibilities. Console commands are easy to write and implement. There are some examples shipped with the base package.
 
 Oh, and the console catches unity Logs.
 
 ## Install
 
+### Local Package Install
+
 Either Clone the repository and reference the `package.json` in the Package Manager UI, or add directly this line to the `Packages/manifest.json` under `dependencies` : 
 
-`"net.peeweek.console": "https://github.com/peeweek/net.peeweek.console.git#1.1.0",`
+`"net.peeweek.console": "https://github.com/peeweek/net.peeweek.console.git#1.2.0",`
+
+### OpenUPM Scoped Registry (2020.1 and newer)
+
+Open Project Preferences and go to Package manager Window.
+
+If not present, add this scoped registry:
+
+* Name: **OpenUPM**
+* URL : `https://package.openupm.com`
+* Scopes : `net.peeweek`
+
+Once added, you can close the project settings window.
+
+Open Package manager (Window/Package Manager), select the Console package, and click the install button.
 
 ## How to use
 
