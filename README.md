@@ -12,7 +12,7 @@ Oh, and the console catches unity Logs.
 
 Either Clone the repository and reference the `package.json` in the Package Manager UI, or add directly this line to the `Packages/manifest.json` under `dependencies` : 
 
-`"net.peeweek.console": "https://github.com/peeweek/net.peeweek.console.git#1.2.0",`
+`"net.peeweek.console": "https://github.com/peeweek/net.peeweek.console.git#1.3.0",`
 
 ### OpenUPM Scoped Registry (2020.1 and newer)
 
