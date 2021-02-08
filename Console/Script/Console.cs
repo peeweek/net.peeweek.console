@@ -37,6 +37,9 @@ namespace ConsoleUtility
         private bool bVisible = false;
         private int history = -1;
 
+        public static event ConsoleDelegate onConsoleToggle;
+        public delegate void ConsoleDelegate(bool visible);
+
         void OnEnable()
         {
             if(s_ConsoleData == null)
@@ -185,6 +188,8 @@ namespace ConsoleUtility
                 InputField.ActivateInputField();
                 UpdateLog();
             }
+
+            onConsoleToggle?.Invoke(visible);
         }
 
         public static void ExecuteCommand(string command)
