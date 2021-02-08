@@ -4,11 +4,11 @@ using UnityEngine;
 
 namespace ConsoleUtility
 {
-    public class StatView : DebugView
+    public class StatView : View
     {
         public StatView() : base(15f) { }
 
-        public override string GetView()
+        public override string GetDebugViewString()
         {
             return $@"
     Current Scene: {UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}

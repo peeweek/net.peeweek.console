@@ -42,11 +42,9 @@ namespace ConsoleUtility
 
         void OnEnable()
         {
-            if(s_ConsoleData == null)
-            {
-                s_ConsoleData = new ConsoleData();
-                s_ConsoleData.AutoRegisterConsoleCommands();
-            }
+            s_ConsoleData = new ConsoleData();
+            s_ConsoleData.AutoRegisterConsoleCommands();
+
             s_ConsoleData.OnLogUpdated = UpdateLog;
             s_Console = this;
 
@@ -55,14 +53,15 @@ namespace ConsoleUtility
             LogText.font.RequestCharactersInTexture("qwertyuiopasdfghjklzxcvbnmQWERYTUIOPASDFGHJKLZXCVBNM1234567890~`!@#$%^&*()_+{}[]:;\"'/.,?><");
 
             Log("Console initialized successfully");
-
             UpdateLog();
         }
 
         void OnDisable()
         {
+            ClearViews();
             s_ConsoleData.OnLogUpdated = null;
             s_Console = null;
+            s_ConsoleData = null;
             Application.logMessageReceived -= HandleUnityLog;
         }
 
@@ -103,21 +102,26 @@ namespace ConsoleUtility
                 }
                 AutoPanelText.text = sb.ToString();
             }
-
         }
 
-        int m_CurrentDebugView  = -1;
+        int m_CurrentView  = -1;
 
-        void SetDebugView(int index)
+        void SetView(int index)
         {
-            m_CurrentDebugView = index;
+            if (index >= s_ConsoleData.views.Count)
+                index = -1;
+            else if (index < -1)
+                index = s_ConsoleData.views.Count - 1;
 
-            if (m_CurrentDebugView >= s_ConsoleData.debugViews.Count)
-                m_CurrentDebugView = -1;
-            else if (m_CurrentDebugView == -2)
-                m_CurrentDebugView = s_ConsoleData.debugViews.Count - 1;
+            if (index == m_CurrentView)
+                return;
 
-            if (m_CurrentDebugView == -1)
+            if(m_CurrentView >= 0)
+                s_ConsoleData.views[m_CurrentView].OnDisable();
+
+            m_CurrentView = index;
+
+            if (m_CurrentView == -1)
             {
                 InputField?.gameObject.SetActive(true);
                 ExecuteButton?.gameObject.SetActive(true);
@@ -127,12 +131,12 @@ namespace ConsoleUtility
             }
             else
             {
+                s_ConsoleData.views[m_CurrentView].OnEnable();
                 InputField?.gameObject.SetActive(false);
                 ExecuteButton?.gameObject.SetActive(false);
                 ClearButton?.gameObject.SetActive(false);
             }
         }
-
 
         void Update()
         {
@@ -143,19 +147,26 @@ namespace ConsoleUtility
 
             if (Input.GetKeyDown(CycleViewKey))
             {
-                // If Shift, cycle reverse
-                if(Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-                    SetDebugView(m_CurrentDebugView - 1);
+                if(Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
+                {
+                    if(m_CurrentView >= 0)
+                        RemoveView(m_CurrentView);
+                }
                 else
-                    SetDebugView(m_CurrentDebugView + 1);
-
+                {
+                    // If Shift, cycle reverse
+                    if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                        SetView(m_CurrentView - 1);
+                    else
+                        SetView(m_CurrentView + 1);
+                }
             }
 
-            if (m_CurrentDebugView != -1)
+            if (m_CurrentView != -1)
             {
-                if (s_ConsoleData.debugViews[m_CurrentDebugView].Update())
+                if (s_ConsoleData.views[m_CurrentView].Update())
                 {
-                    LogText.text = s_ConsoleData.debugViews[m_CurrentDebugView].GetView();
+                    LogText.text = s_ConsoleData.views[m_CurrentView].GetDebugViewString();
                     LogText.Rebuild(CanvasUpdate.Layout);
                 }
                 return;
@@ -209,19 +220,63 @@ namespace ConsoleUtility
             s_Console.StartCoroutine(s_Console.Screenshot(filename, size));
         }
 
-        public static void RegisterView<TDebugView>() where TDebugView : DebugView, new()
+        #region VIEWS
+
+        public static void RegisterView<TView>() where TView : View, new()
         {
             // If not yet created, create an instance
-            if(!s_ConsoleData.debugViews.Any(o => o.GetType() == typeof(TDebugView)))
+            if(!s_ConsoleData.views.Any(o => o.GetType() == typeof(TView)))
             {
-                s_ConsoleData.debugViews.Add(new TDebugView());
+                var view = new TView();
+                view.OnCreate();
+                s_ConsoleData.views.Add(view);
             }
 
             // Switch to view
-            int index = s_ConsoleData.debugViews.IndexOf(s_ConsoleData.debugViews.First(o => o.GetType() == typeof(TDebugView)));
-            s_Console.m_CurrentDebugView = index;
-            s_Console.SetDebugView(s_Console.m_CurrentDebugView);
+            int index = s_ConsoleData.views.IndexOf(s_ConsoleData.views.First(o => o.GetType() == typeof(TView)));
+            s_Console.SetView(index);
         }
+
+        public static void RemoveView(int index)
+        {
+            if(index >= 0 && index < s_ConsoleData.views.Count)
+            {
+                var view = s_ConsoleData.views[index];
+
+                if (s_Console.m_CurrentView >= index)
+                    s_Console.SetView(s_Console.m_CurrentView - 1);
+
+                view.OnDestroy();
+                s_ConsoleData.views.Remove(view);
+            }
+        }
+
+        public static void RemoveView<TView>() where TView:View
+        {
+            if (s_ConsoleData.views.Any(o => o.GetType() == typeof(TView)))
+            {
+                var view = s_ConsoleData.views.First(o => o.GetType() == typeof(TView));
+                int index = s_ConsoleData.views.IndexOf(view);
+
+                if (s_Console.m_CurrentView >= index)
+                    s_Console.SetView(s_Console.m_CurrentView - 1);
+
+                view.OnDestroy();
+                s_ConsoleData.views.Remove(view);
+            }
+        }
+
+        public static void ClearViews()
+        {
+            s_Console.SetView(-1);
+
+            foreach (var view in s_ConsoleData.views)
+                view.OnDestroy();
+
+            s_ConsoleData.views.Clear();
+        }
+
+        #endregion
 
 
         public IEnumerator Screenshot(string filename, int size)
@@ -511,20 +566,20 @@ namespace ConsoleUtility
             public System.Action OnLogUpdated;
             public List<string> commandHistory;
 
-            List<DebugView> m_DebugViews;
+            List<View> m_Views;
 
-            public void AddDebugView(DebugView view)
+            public void AddView(View view)
             {
-                if (!HasDebugView(view.GetType()))
-                    m_DebugViews.Add(view);
+                if (!HasView(view.GetType()))
+                    m_Views.Add(view);
             }
 
-            public bool HasDebugView(Type t)
+            public bool HasView(Type t)
             {
-                if (m_DebugViews == null)
-                    m_DebugViews = new List<DebugView>();
+                if (m_Views == null)
+                    m_Views = new List<View>();
 
-                foreach (var view in m_DebugViews)
+                foreach (var view in m_Views)
                 {
                     if (view.GetType() == t)
                         return true;
@@ -532,7 +587,7 @@ namespace ConsoleUtility
                 return false;
             }
 
-            public List<DebugView> debugViews { get { return m_DebugViews; } }
+            public List<View> views { get { return m_Views; } }
 
             public ConsoleData()
             {
@@ -540,7 +595,7 @@ namespace ConsoleUtility
                 commands = new Dictionary<string, IConsoleCommand>();
                 aliases = new Dictionary<string,string>();
                 commandHistory = new List<string>();
-                m_DebugViews = new List<DebugView>();
+                m_Views = new List<View>();
             }
 
             public void AutoRegisterConsoleCommands()
@@ -562,7 +617,6 @@ namespace ConsoleUtility
                 {
                     AddCommand(Activator.CreateInstance(type) as IConsoleCommand);
                 }
-
             }
         }
 
