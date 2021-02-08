@@ -1,9 +1,9 @@
 # Console Changelog
 
-## [2021-XX-XX] - 1.3.0
+## [2021-02-08] - 1.3.0
 
 * Added a `onConsoleToggle` event to hook into when the console visibility changes.
-* Added API for debug views.
+* Added API & Functionality for debug views.
 
 ## [2021-01-13] - 1.2.0
 
