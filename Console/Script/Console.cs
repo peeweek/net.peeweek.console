@@ -12,7 +12,8 @@ namespace ConsoleUtility
     public class Console : MonoBehaviour
     {
         [Header("Keys")]
-        public KeyCode ToggleKey = KeyCode.F12;
+        public KeyCode ToggleKey = KeyCode.Backslash;
+        public KeyCode CycleViewKey = KeyCode.Tab;
         public KeyCode PreviousCommandKey = KeyCode.UpArrow;
         public KeyCode NextCommandKey = KeyCode.DownArrow;
         public KeyCode ScrollUpKey = KeyCode.PageUp;
@@ -22,6 +23,8 @@ namespace ConsoleUtility
         [Header("Items")]
         public Canvas Canvas;
         public InputField InputField;
+        public Button ExecuteButton;
+        public Button ClearButton;
         public Text LogText;
         public Text ScrollInfo;
         public GameObject AutoPanelRoot;
@@ -42,11 +45,9 @@ namespace ConsoleUtility
 
         void OnEnable()
         {
-            if(s_ConsoleData == null)
-            {
-                s_ConsoleData = new ConsoleData();
-                s_ConsoleData.AutoRegisterConsoleCommands();
-            }
+            s_ConsoleData = new ConsoleData();
+            s_ConsoleData.AutoRegisterConsoleCommands();
+
             s_ConsoleData.OnLogUpdated = UpdateLog;
             s_Console = this;
 
@@ -55,14 +56,15 @@ namespace ConsoleUtility
             LogText.font.RequestCharactersInTexture("qwertyuiopasdfghjklzxcvbnmQWERYTUIOPASDFGHJKLZXCVBNM1234567890~`!@#$%^&*()_+{}[]:;\"'/.,?><");
 
             Log("Console initialized successfully");
-
             UpdateLog();
         }
 
         void OnDisable()
         {
+            ClearViews();
             s_ConsoleData.OnLogUpdated = null;
             s_Console = null;
+            s_ConsoleData = null;
             Application.logMessageReceived -= HandleUnityLog;
         }
 
@@ -103,7 +105,40 @@ namespace ConsoleUtility
                 }
                 AutoPanelText.text = sb.ToString();
             }
+        }
 
+        int m_CurrentView  = -1;
+
+        void SetView(int index)
+        {
+            if (index >= s_ConsoleData.views.Count)
+                index = -1;
+            else if (index < -1)
+                index = s_ConsoleData.views.Count - 1;
+
+            if (index == m_CurrentView)
+                return;
+
+            if(m_CurrentView >= 0)
+                s_ConsoleData.views[m_CurrentView].OnDisable();
+
+            m_CurrentView = index;
+
+            if (m_CurrentView == -1)
+            {
+                InputField?.gameObject.SetActive(true);
+                ExecuteButton?.gameObject.SetActive(true);
+                ClearButton?.gameObject.SetActive(true);
+                UpdateLog();
+                InputField.ActivateInputField();
+            }
+            else
+            {
+                s_ConsoleData.views[m_CurrentView].OnEnable();
+                InputField?.gameObject.SetActive(false);
+                ExecuteButton?.gameObject.SetActive(false);
+                ClearButton?.gameObject.SetActive(false);
+            }
         }
 
         void Update()
@@ -112,6 +147,33 @@ namespace ConsoleUtility
                 ToggleVisibility();
 
             if (!bVisible) return;
+
+            if (Input.GetKeyDown(CycleViewKey))
+            {
+                if(Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
+                {
+                    if(m_CurrentView >= 0)
+                        RemoveView(m_CurrentView);
+                }
+                else
+                {
+                    // If Shift, cycle reverse
+                    if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                        SetView(m_CurrentView - 1);
+                    else
+                        SetView(m_CurrentView + 1);
+                }
+            }
+
+            if (m_CurrentView != -1)
+            {
+                if (s_ConsoleData.views[m_CurrentView].Update())
+                {
+                    LogText.text = s_ConsoleData.views[m_CurrentView].GetDebugViewString();
+                    LogText.Rebuild(CanvasUpdate.Layout);
+                }
+                return;
+            }
 
             if (Input.GetKeyDown(PreviousCommandKey))
             {
@@ -160,6 +222,68 @@ namespace ConsoleUtility
         {
             s_Console.StartCoroutine(s_Console.Screenshot(filename, size));
         }
+
+        #region VIEWS
+
+        public static void RegisterView<TView>() where TView : View, new()
+        {
+            // If not yet created, create an instance
+            if(!s_ConsoleData.views.Any(o => o.GetType() == typeof(TView)))
+            {
+                Log("Views", $"Created new View of type {typeof(TView).Name}");
+                var view = new TView();
+                view.OnCreate();
+                s_ConsoleData.views.Add(view);
+            }
+
+            // Switch to view
+            int index = s_ConsoleData.views.IndexOf(s_ConsoleData.views.First(o => o.GetType() == typeof(TView)));
+            s_Console.SetView(index);
+        }
+
+        public static void RemoveView(int index)
+        {
+            if(index >= 0 && index < s_ConsoleData.views.Count)
+            {
+                var view = s_ConsoleData.views[index];
+
+                if (s_Console.m_CurrentView >= index)
+                    s_Console.SetView(s_Console.m_CurrentView - 1);
+                view.OnDestroy();
+                s_ConsoleData.views.Remove(view);
+                Log("Views", $"Removed View of type {view.GetType().Name}");
+            }
+        }
+
+        public static void RemoveView<TView>() where TView:View
+        {
+            if (s_ConsoleData.views.Any(o => o.GetType() == typeof(TView)))
+            {
+                var view = s_ConsoleData.views.First(o => o.GetType() == typeof(TView));
+                int index = s_ConsoleData.views.IndexOf(view);
+
+                if (s_Console.m_CurrentView >= index)
+                    s_Console.SetView(s_Console.m_CurrentView - 1);
+
+                view.OnDestroy();
+                s_ConsoleData.views.Remove(view);
+                Log("Views", $"Removed View of type {view.GetType().Name}");
+            }
+        }
+
+        public static void ClearViews()
+        {
+            s_Console.SetView(-1);
+
+            foreach (var view in s_ConsoleData.views)
+                view.OnDestroy();
+
+            s_ConsoleData.views.Clear();
+            Log("Views", $"Cleared All Views");
+        }
+
+        #endregion
+
 
         public IEnumerator Screenshot(string filename, int size)
         {
@@ -396,7 +520,6 @@ namespace ConsoleUtility
         public static void Clear()
         {
             s_ConsoleData.lines.Clear();
-
             Log("Console","Cleared Output", LogType.Log);
 
             if (s_ConsoleData.OnLogUpdated != null)
@@ -450,12 +573,36 @@ namespace ConsoleUtility
             public System.Action OnLogUpdated;
             public List<string> commandHistory;
 
+            List<View> m_Views;
+
+            public void AddView(View view)
+            {
+                if (!HasView(view.GetType()))
+                    m_Views.Add(view);
+            }
+
+            public bool HasView(Type t)
+            {
+                if (m_Views == null)
+                    m_Views = new List<View>();
+
+                foreach (var view in m_Views)
+                {
+                    if (view.GetType() == t)
+                        return true;
+                }
+                return false;
+            }
+
+            public List<View> views { get { return m_Views; } }
+
             public ConsoleData()
             {
                 lines = new List<string>();
                 commands = new Dictionary<string, IConsoleCommand>();
                 aliases = new Dictionary<string,string>();
                 commandHistory = new List<string>();
+                m_Views = new List<View>();
             }
 
             public void AutoRegisterConsoleCommands()
@@ -477,7 +624,6 @@ namespace ConsoleUtility
                 {
                     AddCommand(Activator.CreateInstance(type) as IConsoleCommand);
                 }
-
             }
         }
 
@@ -530,15 +676,29 @@ Additional arguments are ignored";
     {
         public void Execute(string[] args)
         {
-            Console.Clear();
+            if(args.Length >= 1)
+            {
+                if (args[0].ToLower() == "console")
+                    Console.Clear();
+                if (args[0].ToLower() == "views")
+                    Console.ClearViews();
+            }
+            else if(args.Length == 0)
+            {
+                Console.Clear();
+                Console.ClearViews();
+            }
         }
 
         public string name => "clear";
 
-        public string summary => "Clears the console output";
+        public string summary => "Clears the console output and/or views";
 
         public string help => @"<color=yellow>Clear</color>
-                Usage: clear";
+    Usage: clear [console|views]
+        clear           -> Clears the Console and Views
+        clear console   -> Clears the Console
+        clear views     -> Clears all Views";
 
         public IEnumerable<Console.Alias> aliases
         {
