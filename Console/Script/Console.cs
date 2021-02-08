@@ -230,6 +230,7 @@ namespace ConsoleUtility
             // If not yet created, create an instance
             if(!s_ConsoleData.views.Any(o => o.GetType() == typeof(TView)))
             {
+                Log("Views", $"Created new View of type {typeof(TView).Name}");
                 var view = new TView();
                 view.OnCreate();
                 s_ConsoleData.views.Add(view);
@@ -248,9 +249,9 @@ namespace ConsoleUtility
 
                 if (s_Console.m_CurrentView >= index)
                     s_Console.SetView(s_Console.m_CurrentView - 1);
-
                 view.OnDestroy();
                 s_ConsoleData.views.Remove(view);
+                Log("Views", $"Removed View of type {view.GetType().Name}");
             }
         }
 
@@ -266,6 +267,7 @@ namespace ConsoleUtility
 
                 view.OnDestroy();
                 s_ConsoleData.views.Remove(view);
+                Log("Views", $"Removed View of type {view.GetType().Name}");
             }
         }
 
@@ -277,6 +279,7 @@ namespace ConsoleUtility
                 view.OnDestroy();
 
             s_ConsoleData.views.Clear();
+            Log("Views", $"Cleared All Views");
         }
 
         #endregion
@@ -517,7 +520,6 @@ namespace ConsoleUtility
         public static void Clear()
         {
             s_ConsoleData.lines.Clear();
-
             Log("Console","Cleared Output", LogType.Log);
 
             if (s_ConsoleData.OnLogUpdated != null)
@@ -674,15 +676,29 @@ Additional arguments are ignored";
     {
         public void Execute(string[] args)
         {
-            Console.Clear();
+            if(args.Length >= 1)
+            {
+                if (args[0].ToLower() == "console")
+                    Console.Clear();
+                if (args[0].ToLower() == "views")
+                    Console.ClearViews();
+            }
+            else if(args.Length == 0)
+            {
+                Console.Clear();
+                Console.ClearViews();
+            }
         }
 
         public string name => "clear";
 
-        public string summary => "Clears the console output";
+        public string summary => "Clears the console output and/or views";
 
         public string help => @"<color=yellow>Clear</color>
-                Usage: clear";
+    Usage: clear [console|views]
+        clear           -> Clears the Console and Views
+        clear console   -> Clears the Console
+        clear views     -> Clears all Views";
 
         public IEnumerable<Console.Alias> aliases
         {
