@@ -11,14 +11,8 @@ namespace ConsoleUtility
 {
     public class Console : MonoBehaviour
     {
-        [Header("Keys")]
-        public KeyCode ToggleKey = KeyCode.Backslash;
-        public KeyCode CycleViewKey = KeyCode.Tab;
-        public KeyCode PreviousCommandKey = KeyCode.UpArrow;
-        public KeyCode NextCommandKey = KeyCode.DownArrow;
-        public KeyCode ScrollUpKey = KeyCode.PageUp;
-        public KeyCode ScrollDownKey = KeyCode.PageDown;
-        public KeyCode ValidateKey = KeyCode.Return;
+        [SerializeField]
+        ConsoleInput consoleInput;
 
         [Header("Items")]
         public Canvas Canvas;
@@ -61,6 +55,9 @@ namespace ConsoleUtility
 
         void OnDisable()
         {
+            if (s_Console == null && s_ConsoleData == null)
+                return;
+
             ClearViews();
             s_ConsoleData.OnLogUpdated = null;
             s_Console = null;
@@ -143,12 +140,12 @@ namespace ConsoleUtility
 
         void Update()
         {
-            if (Input.GetKeyDown(ToggleKey))
+            if (consoleInput && consoleInput.toggle)
                 ToggleVisibility();
 
             if (!bVisible) return;
 
-            if (Input.GetKeyDown(CycleViewKey))
+            if (consoleInput && consoleInput.cycleView)
             {
                 if(Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
                 {
@@ -175,7 +172,7 @@ namespace ConsoleUtility
                 return;
             }
 
-            if (Input.GetKeyDown(PreviousCommandKey))
+            if (consoleInput && consoleInput.previousCommand)
             {
                 history++;
                 if (history > s_ConsoleData.commandHistory.Count - 1)
@@ -186,7 +183,7 @@ namespace ConsoleUtility
 
                 InputField.MoveTextEnd(false);
             }
-            else if (Input.GetKeyDown(NextCommandKey))
+            else if (consoleInput && consoleInput.nextCommand)
             {
                 history--;
                 if (history <= -1)
@@ -199,15 +196,15 @@ namespace ConsoleUtility
 
                 InputField.MoveTextEnd(false);
             }
-            else if (Input.GetKeyDown(ValidateKey))
+            else if (consoleInput && consoleInput.validate)
             {
                 ValidateCommand();
             }
-            else if (Input.GetKeyDown(ScrollUpKey))
+            else if (consoleInput && consoleInput.scrollUp)
             {
                 ScrollUp();
             }
-            else if (Input.GetKeyDown(ScrollDownKey))
+            else if (consoleInput && consoleInput.scrollDown)
             {
                 ScrollDown();
             }
