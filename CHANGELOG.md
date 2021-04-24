@@ -1,6 +1,6 @@
 # Console Changelog
 
-## [2021-XX-XX] - 1.4.0
+## [2021-04-24] - 1.4.0
 
 * Added Support for new Input System
 * Separated Input as `ConsoleInput` abstract behaviors.
