@@ -1,5 +1,11 @@
 # Console Changelog
 
+## [2021-XX-XX] - 1.4.0
+
+* Added Support for new Input System
+* Separated Input as `ConsoleInput` abstract behaviors.
+* Console now spawns from different prefabs based on the presence of input system package and usage in player settings (prioritizes to legacy if both are used)
+
 ## [2021-02-08] - 1.3.0
 
 * Added a `onConsoleToggle` event to hook into when the console visibility changes.
