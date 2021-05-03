@@ -24,6 +24,13 @@ namespace ConsoleUtility
         public GameObject AutoPanelRoot;
         public Text AutoPanelText;
 
+        [Header("Peek")]
+        public GameObject peekRoot;
+        public Text peekText;
+        public bool showOnReleaseBuilds = false;
+        public bool showOnEditor = false;
+        public float peekDuration = 5.0f;
+
         [Header("Settings")]
         [Range(1.0f, 30.0f)]
         public float ScrollSpeed = 5.0f;
@@ -31,7 +38,7 @@ namespace ConsoleUtility
         private static ConsoleData s_ConsoleData;
         private static Console s_Console;
 
-        private bool bVisible = false;
+        private bool bConsoleVisible = false;
         private int history = -1;
 
         public static event ConsoleDelegate onConsoleToggle;
@@ -51,6 +58,8 @@ namespace ConsoleUtility
 
             Log("Console initialized successfully");
             UpdateLog();
+
+            ClearPeek();
         }
 
         void OnDisable()
@@ -104,46 +113,12 @@ namespace ConsoleUtility
             }
         }
 
-        int m_CurrentView  = -1;
-
-        void SetView(int index)
-        {
-            if (index >= s_ConsoleData.views.Count)
-                index = -1;
-            else if (index < -1)
-                index = s_ConsoleData.views.Count - 1;
-
-            if (index == m_CurrentView)
-                return;
-
-            if(m_CurrentView >= 0)
-                s_ConsoleData.views[m_CurrentView].OnDisable();
-
-            m_CurrentView = index;
-
-            if (m_CurrentView == -1)
-            {
-                InputField?.gameObject.SetActive(true);
-                ExecuteButton?.gameObject.SetActive(true);
-                ClearButton?.gameObject.SetActive(true);
-                UpdateLog();
-                InputField.ActivateInputField();
-            }
-            else
-            {
-                s_ConsoleData.views[m_CurrentView].OnEnable();
-                InputField?.gameObject.SetActive(false);
-                ExecuteButton?.gameObject.SetActive(false);
-                ClearButton?.gameObject.SetActive(false);
-            }
-        }
-
         void Update()
         {
             if (consoleInput && consoleInput.toggle)
                 ToggleVisibility();
 
-            if (!bVisible) return;
+            if (!bConsoleVisible) return;
 
             if (consoleInput && consoleInput.cycleView)
             {
@@ -210,17 +185,57 @@ namespace ConsoleUtility
             }
         }
 
-        public static void SetVisible(bool visible)
-        {
-            s_Console.SetVisibility(visible);
-        }
+        #region SCREENSHOT
 
         public static void CaptureScreenshot(string filename, int size)
         {
             s_Console.StartCoroutine(s_Console.Screenshot(filename, size));
         }
 
+        public IEnumerator Screenshot(string filename, int size)
+        {
+            Console.SetVisible(false);
+            yield return new WaitForEndOfFrame();
+            ScreenCapture.CaptureScreenshot(filename, 1);
+            Console.SetVisible(true);
+        }
+        #endregion
+
         #region VIEWS
+
+        int m_CurrentView = -1;
+
+        void SetView(int index)
+        {
+            if (index >= s_ConsoleData.views.Count)
+                index = -1;
+            else if (index < -1)
+                index = s_ConsoleData.views.Count - 1;
+
+            if (index == m_CurrentView)
+                return;
+
+            if (m_CurrentView >= 0)
+                s_ConsoleData.views[m_CurrentView].OnDisable();
+
+            m_CurrentView = index;
+
+            if (m_CurrentView == -1)
+            {
+                InputField?.gameObject.SetActive(true);
+                ExecuteButton?.gameObject.SetActive(true);
+                ClearButton?.gameObject.SetActive(true);
+                UpdateLog();
+                InputField.ActivateInputField();
+            }
+            else
+            {
+                s_ConsoleData.views[m_CurrentView].OnEnable();
+                InputField?.gameObject.SetActive(false);
+                ExecuteButton?.gameObject.SetActive(false);
+                ClearButton?.gameObject.SetActive(false);
+            }
+        }
 
         public static void RegisterView<TView>() where TView : View, new()
         {
@@ -281,27 +296,25 @@ namespace ConsoleUtility
 
         #endregion
 
+        #region VISIBILITY
 
-        public IEnumerator Screenshot(string filename, int size)
+        public static void SetVisible(bool visible)
         {
-            Console.SetVisible(false);
-            yield return new WaitForEndOfFrame();
-            ScreenCapture.CaptureScreenshot(filename, 1);
-            Console.SetVisible(true);
+            s_Console.SetVisibility(visible);
         }
-        
+
         public void ToggleVisibility()
         {
-            SetVisibility(!bVisible);
+            SetVisibility(!bConsoleVisible);
         }
 
         public void SetVisibility(bool visible)
         {
-            if (bVisible == visible)
+            if (bConsoleVisible == visible)
                 return;
-            bVisible = visible;
-            Canvas.gameObject.SetActive(bVisible);
-            if (bVisible)
+            bConsoleVisible = visible;
+            Canvas.gameObject.SetActive(bConsoleVisible);
+            if (bConsoleVisible)
             {
                 InputField.text = "";
                 InputField.Select();
@@ -311,7 +324,12 @@ namespace ConsoleUtility
             }
 
             onConsoleToggle?.Invoke(visible);
+            SetPeekVisible(!visible);
         }
+
+        #endregion
+
+        #region CONSOLE BEHAVIOR
 
         public static void ExecuteCommand(string command)
         {
@@ -356,12 +374,12 @@ namespace ConsoleUtility
             UpdateLog();
         }
 
-        public static void Log(string Message)
+        public static void Log(string Message, bool logToPeek = true)
         {
             Log(string.Empty, Message, LogType.Log);
         }
 
-        public static void Log(string Command, string Message, LogType type = LogType.Log)
+        public static void Log(string Command, string Message, LogType type = LogType.Log, bool logToPeek = true)
         {
             string prepend = "";
             if (Command != string.Empty)
@@ -392,6 +410,10 @@ namespace ConsoleUtility
 
             if (s_ConsoleData.OnLogUpdated != null)
                 s_ConsoleData.OnLogUpdated.Invoke();
+
+            if (logToPeek && lines.Length >= 1)
+                s_Console?.LogToPeek(prepend + lines[0]);
+
         }
 
         private static void HandleUnityLog(string logString, string stackTrace, LogType type)
@@ -399,7 +421,7 @@ namespace ConsoleUtility
             Log("UNITY", string.Format("[{0}] : {1}", type, logString), type);
             if(type == LogType.Error || type == LogType.Exception)
             {
-                Log(stackTrace);
+                Log(stackTrace, false);
             }
         }
 
@@ -482,7 +504,7 @@ namespace ConsoleUtility
 
         private void UpdateLog()
         {
-            if (s_ConsoleData.lines.Count == 0 || !bVisible) return;
+            if (s_ConsoleData.lines.Count == 0 || !bConsoleVisible) return;
 
             // Ensure m_Scroll is Consistent when clearing;
             if (m_Scroll > s_ConsoleData.lines.Count)
@@ -523,6 +545,97 @@ namespace ConsoleUtility
                 s_ConsoleData.OnLogUpdated.Invoke();
         }
 
+        #endregion
+
+        #region PEEK
+
+        Dictionary<int, (string,int)> m_PeekData;
+
+        void SetPeekVisible(bool visible)
+        {
+            if (peekRoot == null)
+                return;
+
+            peekRoot.SetActive(visible);
+        }
+
+        void ClearPeek()
+        {
+            if (m_PeekData == null)
+                m_PeekData = new Dictionary<int, (string, int)>();
+            else
+                m_PeekData.Clear();
+
+            UpdatePeek();
+        }
+
+        void LogToPeek(string message)
+        {
+            if (bConsoleVisible || !gameObject.activeSelf)
+                return;
+
+            if (!(Debug.isDebugBuild) && !showOnReleaseBuilds)
+                return;
+
+            if (Application.isEditor && !showOnEditor)
+                return;
+
+            if (m_PeekData == null)
+                m_PeekData = new Dictionary<int, (string, int)>();
+
+            int id = Shader.PropertyToID(message);
+            if (!m_PeekData.ContainsKey(id))
+                m_PeekData.Add(id, (message, 1));
+            else
+            {
+                var val = m_PeekData[id];
+                m_PeekData[id]= (val.Item1, val.Item2+1);
+            }
+
+            StartCoroutine(RemoveElement(id));
+            UpdatePeek();
+        }
+
+        IEnumerator RemoveElement(int id)
+        {
+            yield return new WaitForSeconds(peekDuration);
+
+            if(m_PeekData.ContainsKey(id))
+            {
+                var val = m_PeekData[id];
+                val.Item2--;
+
+                if (val.Item2 > 0)
+                    m_PeekData[id] = val;
+                else
+                    m_PeekData.Remove(id);
+            }
+
+            UpdatePeek();
+        }
+
+        void UpdatePeek()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            foreach (var kvp in m_PeekData)
+            {
+                var val = kvp.Value;
+                int count = val.Item2;
+                sb.AppendLine($"[{count.ToString("D3")}] {val.Item1}");
+            }
+
+            peekText.text = sb.ToString();
+
+            SetPeekVisible(m_PeekData.Count > 0);
+        }
+        
+
+
+        #endregion
+
+        #region COMMANDS
+
         public static IConsoleCommand[] listAllCommands()
         {
             return s_ConsoleData.commands.Values.ToArray();
@@ -561,6 +674,8 @@ namespace ConsoleUtility
                 return new Alias { AliasString = alias, Command = command };
             }
         }
+
+        #endregion
 
         public class ConsoleData
         {
@@ -624,49 +739,53 @@ namespace ConsoleUtility
             }
         }
 
-        [AutoRegisterConsoleCommand]
-        public class HelpCommand : IConsoleCommand
+    }
+
+    #region BUILT-IN COMMANDS
+
+    [AutoRegisterConsoleCommand]
+    public class HelpCommand : IConsoleCommand
+    {
+        public void Execute(string[] args)
         {
-            public void Execute(string[] args)
+            if (args.Length > 0)
             {
-                if (args.Length > 0)
+                var commands = Console.listAllCommands();
+                var command = commands.FirstOrDefault<IConsoleCommand>((o) => o.name == args[0]);
+                if (command != null)
                 {
-                    var commands = Console.listAllCommands();
-                    var command = commands.FirstOrDefault<IConsoleCommand>((o) => o.name == args[0]);
-                    if (command != null)
+                    Console.Log(name, "Help for command : " + command.name);
+                    Console.Log("Summary : " + command.summary);
+                    string[] helpText = command.help.Replace("\r", "").Split('\n');
+                    foreach (var line in helpText)
                     {
-                        Console.Log(name, "Help for command : " + command.name);
-                        Console.Log("Summary : " + command.summary);
-                        string[] helpText = command.help.Replace("\r", "").Split('\n');
-                        foreach (var line in helpText)
-                        {
-                            Console.Log("    " + line);
-                        }
+                        Console.Log("    " + line);
                     }
-                    else
-                        Console.Log(name, "Could not find help for command " + args[0]);
                 }
                 else
+                    Console.Log(name, "Could not find help for command " + args[0]);
+            }
+            else
+            {
+                Console.Log(name, "Available Commands:");
+                foreach (var command in Console.listAllCommands())
                 {
-                    Console.Log(name, "Available Commands:");
-                    foreach (var command in Console.listAllCommands())
-                    {
-                        Console.Log(command.name + " : " + command.summary);
-                    }
+                    Console.Log(command.name + " : " + command.summary);
                 }
             }
-            
-            public string name => "help";
-            
-            public string summary =>"Gets a summary of all commands or shows help for a specific command.";
+        }
 
-            public string help => @"Usage: <color=yellow>HELP</color> <i>command</i>
+        public string name => "help";
+
+        public string summary => "Gets a summary of all commands or shows help for a specific command.";
+
+        public string help => @"Usage: <color=yellow>HELP</color> <i>command</i>
 Shows help for specific command or list any available command.
 Additional arguments are ignored";
-            
-            public IEnumerable<Alias> aliases => null;
-        }
+
+        public IEnumerable<Console.Alias> aliases => null;
     }
+
 
     [AutoRegisterConsoleCommand]
     public class Clear : IConsoleCommand
@@ -704,7 +823,6 @@ Additional arguments are ignored";
                 yield return Console.Alias.Get("cls", "clear");
             }
         }
-
     }
 
     public interface IConsoleCommand
@@ -718,5 +836,5 @@ Additional arguments are ignored";
     }
 
     public class AutoRegisterConsoleCommandAttribute : System.Attribute { }
+    #endregion
 }
-
