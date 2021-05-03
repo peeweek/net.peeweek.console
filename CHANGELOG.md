@@ -1,5 +1,9 @@
 # Console Changelog
 
+## [2021-05-03] - 1.5.0
+
+* Added Peek Feature
+
 ## [2021-04-24] - 1.4.0
 
 * Added Support for new Input System
