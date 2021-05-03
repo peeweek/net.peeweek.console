@@ -3,6 +3,7 @@
 ## [2021-05-03] - 1.5.0
 
 * Added Peek Feature
+* Better handling of prefabs (now you can duplicate prefabs from Package Resources into your Assets/Resources and remove the Default_ prefix to create your own variant)
 
 ## [2021-04-24] - 1.4.0
 
