@@ -301,6 +301,7 @@ namespace ConsoleUtility
         public static void SetVisible(bool visible)
         {
             s_Console.SetVisibility(visible);
+            s_Console.SetPeekVisible(!visible);
         }
 
         public void ToggleVisibility()
@@ -627,7 +628,7 @@ namespace ConsoleUtility
 
             peekText.text = sb.ToString();
 
-            SetPeekVisible(m_PeekData.Count > 0);
+            SetPeekVisible(m_PeekData.Count > 0 && !bConsoleVisible);
         }
         
 
