@@ -1,3 +1,4 @@
+using UnityEngine;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
@@ -148,6 +149,27 @@ namespace ConsoleUtility
                     throw new System.NotImplementedException();
             }
         }
+    }
+}
+#else
+namespace ConsoleUtility
+{
+    [AddComponentMenu("")] // Hidden
+    public class InputSystemConsoleInput : ConsoleInput
+    {
+        public override bool toggle => throw new System.NotImplementedException();
+
+        public override bool cycleView => throw new System.NotImplementedException();
+
+        public override bool previousCommand => throw new System.NotImplementedException();
+
+        public override bool nextCommand => throw new System.NotImplementedException();
+
+        public override bool scrollUp => throw new System.NotImplementedException();
+
+        public override bool scrollDown => throw new System.NotImplementedException();
+
+        public override bool validate => throw new System.NotImplementedException();
     }
 }
 #endif

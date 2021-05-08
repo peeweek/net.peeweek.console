@@ -1,5 +1,5 @@
-#if ENABLE_LEGACY_INPUT_MANAGER
 using UnityEngine;
+#if ENABLE_LEGACY_INPUT_MANAGER
 
 namespace ConsoleUtility
 {
@@ -27,6 +27,27 @@ namespace ConsoleUtility
         public override bool scrollDown => Input.GetKeyDown(ScrollDownKey);
 
         public override bool validate => Input.GetKeyDown(ValidateKey);
+    }
+}
+#else
+namespace ConsoleUtility
+{
+    [AddComponentMenu("")] // Hidden
+    public class LegacyConsoleInput : ConsoleInput
+    {
+        public override bool toggle => throw new System.NotImplementedException();
+
+        public override bool cycleView => throw new System.NotImplementedException();
+
+        public override bool previousCommand => throw new System.NotImplementedException();
+
+        public override bool nextCommand => throw new System.NotImplementedException();
+
+        public override bool scrollUp => throw new System.NotImplementedException();
+
+        public override bool scrollDown => throw new System.NotImplementedException();
+
+        public override bool validate => throw new System.NotImplementedException();
     }
 }
 #endif
