@@ -1,5 +1,9 @@
 # Console Changelog
 
+## [2021-05-08] - 1.5.1
+
+* Fixed Default unused Prefabs that throwed warnings during build for other input systems.
+
 ## [2021-05-03] - 1.5.0
 
 * Added Peek Feature
