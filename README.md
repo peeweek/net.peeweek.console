@@ -10,12 +10,6 @@ Oh, and the console catches unity Logs.
 
 ## Install
 
-### Local Package Install
-
-Either Clone the repository and reference the `package.json` in the Package Manager UI, or add directly this line to the `Packages/manifest.json` under `dependencies` : 
-
-`"net.peeweek.console": "https://github.com/peeweek/net.peeweek.console.git#1.4.0",`
-
 ### OpenUPM Scoped Registry (2020.1 and newer)
 
 Open Project Preferences and go to Package manager Window.
@@ -30,10 +24,25 @@ Once added, you can close the project settings window.
 
 Open Package manager (Window/Package Manager), select the Console package, and click the install button.
 
+### Local Package Install
+
+Either Clone the repository and reference the `package.json` in the Package Manager UI, or add directly this line to the `Packages/manifest.json` under `dependencies` : 
+
+`"net.peeweek.console": "https://github.com/peeweek/net.peeweek.console.git#1.4.0",`
+
 ## How to use
 
+* By default, a default console is spawned from the prefab when playing.
 * Press the Backslash `\` key at runtime to toggle the Console (Can be customized if you use the package as local package)
 * Use the input field to input commands and execute button or return key to execute.
+
+## Customizing the Console Prefab
+
+If you want to customize the console prefab, you can create a copy of the default prefabs into your `Assets/Resources` directory from your Project View's `Packages/Console/Resources` directory. There are two diffent prefabs, based on the input system you are currently using:
+ * `Default_Console_LegacyInput.prefab` : Legacy Input System
+ * `Default_Console_NewInputSystem.prefab` : New Input System Package
+
+After creating the copy, just rename the newly created asset, and remove the `Default_` prefix.
 
 ### Navigation (Defaults)
 
