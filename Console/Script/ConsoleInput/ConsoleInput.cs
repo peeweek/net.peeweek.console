@@ -12,6 +12,9 @@ namespace ConsoleUtility
         public abstract bool scrollUp { get; }
         public abstract bool scrollDown { get; }
         public abstract bool validate { get; }
+
+        public abstract bool ctrl { get; }
+        public abstract bool shift { get; }
     }
 }
 

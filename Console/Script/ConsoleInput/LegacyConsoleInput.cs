@@ -27,6 +27,10 @@ namespace ConsoleUtility
         public override bool scrollDown => Input.GetKeyDown(ScrollDownKey);
 
         public override bool validate => Input.GetKeyDown(ValidateKey);
+        
+        public override bool ctrl => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+
+        public override bool shift => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
     }
 }
 #else
@@ -48,6 +52,10 @@ namespace ConsoleUtility
         public override bool scrollDown => throw new System.NotImplementedException();
 
         public override bool validate => throw new System.NotImplementedException();
+
+        public override bool ctrl => throw new System.NotImplementedException();
+
+        public override bool shift => throw new System.NotImplementedException();
     }
 }
 #endif

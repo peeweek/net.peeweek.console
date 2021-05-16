@@ -1,5 +1,9 @@
 # Console Changelog
 
+## [2021-05-16] - 1.5.2
+
+* Fixed Input for View Cycling / Remove.
+
 ## [2021-05-08] - 1.5.1
 
 * Fixed Default unused Prefabs that throwed warnings during build for other input systems.

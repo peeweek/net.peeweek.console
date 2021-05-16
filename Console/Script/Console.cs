@@ -122,7 +122,7 @@ namespace ConsoleUtility
 
             if (consoleInput && consoleInput.cycleView)
             {
-                if(Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
+                if(consoleInput.ctrl)
                 {
                     if(m_CurrentView >= 0)
                         RemoveView(m_CurrentView);
@@ -130,7 +130,7 @@ namespace ConsoleUtility
                 else
                 {
                     // If Shift, cycle reverse
-                    if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                    if (consoleInput.shift)
                         SetView(m_CurrentView - 1);
                     else
                         SetView(m_CurrentView + 1);

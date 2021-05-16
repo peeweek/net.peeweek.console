@@ -29,6 +29,10 @@ namespace ConsoleUtility
 
         public override bool validate => GetButton(ValidateKey).wasPressedThisFrame;
 
+        public override bool ctrl => GetButton(Key.LeftCtrl).isPressed || GetButton(Key.RightCtrl).isPressed;
+
+        public override bool shift => GetButton(Key.LeftShift).isPressed || GetButton(Key.RightShift).isPressed;
+
         static ButtonControl GetButton(Key k)
         {
             Keyboard kb = Keyboard.current;
@@ -170,6 +174,10 @@ namespace ConsoleUtility
         public override bool scrollDown => throw new System.NotImplementedException();
 
         public override bool validate => throw new System.NotImplementedException();
+
+        public override bool ctrl => throw new System.NotImplementedException();
+
+        public override bool shift => throw new System.NotImplementedException();
     }
 }
 #endif
