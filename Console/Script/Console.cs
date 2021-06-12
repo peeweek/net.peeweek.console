@@ -237,6 +237,27 @@ namespace ConsoleUtility
             }
         }
 
+        public static void RegisterView(Type t)
+        {
+            if (typeof(View).IsAssignableFrom(t))
+            {
+                // If not yet created, create an instance
+                if (!s_ConsoleData.views.Any(o => o.GetType() == t))
+                {
+                    Log("Views", $"Created new View of type {t.Name}");
+                    var view = Activator.CreateInstance(t) as View;
+                    view.OnCreate();
+                    s_ConsoleData.views.Add(view);
+                }
+
+                // Switch to view
+                int index = s_ConsoleData.views.IndexOf(s_ConsoleData.views.First(o => o.GetType() == t));
+                s_Console.SetView(index);
+            }
+            else
+                throw new Exception($"{t.Name} is not a View");
+        }
+
         public static void RegisterView<TView>() where TView : View, new()
         {
             // If not yet created, create an instance
