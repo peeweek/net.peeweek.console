@@ -1,5 +1,9 @@
 # Console Changelog
 
+## [2021-06-XX] - 1.6.0
+
+* Added Stat View to ease the registering/creation of Views
+
 ## [2021-05-16] - 1.5.2
 
 * Fixed Input for View Cycling / Remove.
